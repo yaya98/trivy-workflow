@@ -15,6 +15,7 @@ jobs:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
       actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+      pull-requests: write # for peter-evans/create-or-update-comment to comment on PR
     name: Build
     runs-on: ubuntu-latest
     steps:
@@ -28,10 +29,10 @@ jobs:
           scan-ref: "."
           output: "trivy-results.sarif"
           format: "sarif"
-          severity: "CRITICAL,HIGH"
+          severity: "CRITICAL,HIGH,MEDIUM,LOW"
 
       - name: Run Trivy scan (table format)
-        run: trivy fs . --format table --severity CRITICAL,HIGH --output trivy-results.txt
+        run: trivy fs . --format table --severity CRITICAL,HIGH,MEDIUM,LOW --output trivy-results.txt
 
       - name: Upload Table Report as Artifact
         uses: actions/upload-artifact@v4
@@ -43,3 +44,20 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: "trivy-results.sarif"
+
+      - name: Read Trivy results
+        id: read_results
+        run: |
+          echo '```' >> comment.txt
+          cat trivy-results.txt >> comment.txt
+          echo '```' >> comment.txt
+          echo "result<<EOF" >> $GITHUB_OUTPUT
+          cat comment.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: ${{ steps.read_results.outputs.result }}
