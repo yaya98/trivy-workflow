@@ -31,7 +31,7 @@ jobs:
           severity: "CRITICAL,HIGH,MEDIUM,LOW"
 
       - name: Run Trivy scan (table format)
-        run: trivy fs . --format table --severity CRITICAL,HIGH --output trivy-results.txt
+        run: trivy fs . --format table --severity CRITICAL,HIGH,MEDIUM,LOW --output trivy-results.txt
 
       - name: Upload Table Report as Artifact
         uses: actions/upload-artifact@v4
