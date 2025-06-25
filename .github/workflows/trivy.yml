@@ -43,3 +43,20 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: "trivy-results.sarif"
+
+      - name: Read Trivy results
+        id: read_results
+        run: |
+          echo '```' >> comment.txt
+          cat trivy-results.txt >> comment.txt
+          echo '```' >> comment.txt
+          echo "result<<EOF" >> $GITHUB_OUTPUT
+          cat comment.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: ${{ steps.read_results.outputs.result }}
