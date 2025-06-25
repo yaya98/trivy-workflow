@@ -28,7 +28,7 @@ jobs:
           scan-ref: "."
           output: "trivy-results.sarif"
           format: "sarif"
-          severity: "CRITICAL,HIGH"
+          severity: "CRITICAL,HIGH,MEDIUM,LOW"
 
       - name: Run Trivy scan (table format)
         run: trivy fs . --format table --severity CRITICAL,HIGH --output trivy-results.txt
